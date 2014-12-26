@@ -16,6 +16,9 @@ public class Fighter : MonoBehaviour {
 	void Update () {
 
 		if(Input.GetKey(KeyCode.Space)){
+
+			transform.LookAt(opponent.transform.position);
+
 			animation.Play(attack.name);
 			ClickToMove.attack = true;
 		}else if(!animation.IsPlaying(attack.name)){
