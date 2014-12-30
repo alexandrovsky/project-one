@@ -6,22 +6,38 @@ public class ClickToMove : MonoBehaviour {
 
 
 	public float speed;
-	public CharacterController charCtrl;
+
+	public Character character;
 
 	public AnimationClip run;
 	public AnimationClip idle;
 
-	public static bool attack;
 
-	Vector3 clickPosition;
+
+	float destinationDistance;
+	Vector3 destinationPosition;
+
+
 
 
 	void Start () {
-		clickPosition = transform.position;
+		destinationPosition = transform.position;
+		character = GetComponent("Character") as Character;
 	}
 	
 	// Update is called once per frame
 	void Update () {
+
+
+		destinationDistance = Vector3.Distance(destinationPosition, transform.position);
+		
+		if(destinationDistance < .5f){		// To prevent shakin behavior when near destination
+			character.speed = 0;
+		}
+		else if(destinationDistance > .5f){			// To Reset Speed to default
+			character.speed = character.speedDefault;
+		}
+
 
 		if(Input.GetMouseButton(0)){
 
@@ -29,40 +45,51 @@ public class ClickToMove : MonoBehaviour {
 		}
 
 		moveToClickPosition();
-	
-		Debug.DrawLine(transform.position, clickPosition, Color.cyan);
 	}
 
 
 	void locateClickPosition(){
-		RaycastHit hit;
 
+		Plane playerPlane = new Plane(Vector3.up, transform.position);
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
+		RaycastHit hit;
+		if( Physics.Raycast(ray,out hit) ){
+			destinationPosition = hit.point;
+			Quaternion targetRotation = Quaternion.LookRotation(hit.point - transform.position);
 
-		if(Physics.Raycast(ray, out hit, 1000)){
-			clickPosition = new Vector3(hit.point.x, hit.point.y, hit.point.z);
-			Debug.Log(clickPosition);
+			targetRotation.x = 0;
+			targetRotation.z = 0;
+
+			character.moveDestinationRotation = targetRotation;
+
 		}
+
+
+//		float hitdist;
+//		if (playerPlane.Raycast (ray, out hitdist)) {
+//			Vector3 targetPoint = ray.GetPoint(hitdist);
+//			destinationPosition = ray.GetPoint(hitdist);
+//			Quaternion targetRotation = Quaternion.LookRotation(targetPoint - transform.position);
+//			character.moveDestinationRotation = targetRotation;
+//
+////			transform.rotation = targetRotation;
+//		}
+
 	}
 
 	void moveToClickPosition(){
 
-		if(!attack){
-			if(Vector3.Distance(transform.position, clickPosition)>1.5)
-			{
-				Quaternion newRotation = Quaternion.LookRotation(clickPosition-transform.position);
-				
-				newRotation.x = 0f;
-				newRotation.z = 0f;
-				
-				transform.rotation = Quaternion.Slerp(transform.rotation, newRotation, Time.deltaTime * 10);
-				charCtrl.SimpleMove(transform.forward * speed);
-				
-				animation.CrossFade(run.name);
-			}else {
-				animation.CrossFade(idle.name);
-			}
+
+		if(destinationDistance > .5f){
+
+			character.state = CharacterState.CharacterStateRun;
+			character.moveDestinationPosition = destinationPosition;
+//			transform.position = Vector3.MoveTowards(transform.position, destinationPosition, speed * Time.deltaTime);
+//			animation.CrossFade(run.name);
+		}else {
+			character.state = CharacterState.CharacterStateIdle;
+//			animation.CrossFade(idle.name);
 		}
 	}
 }

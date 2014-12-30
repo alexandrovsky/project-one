@@ -20,9 +20,9 @@ public class Fighter : MonoBehaviour {
 			transform.LookAt(opponent.transform.position);
 
 			animation.Play(attack.name);
-			ClickToMove.attack = true;
+//			ClickToMove.attack = true;
 		}else if(!animation.IsPlaying(attack.name)){
-			ClickToMove.attack = false;
+//			ClickToMove.attack = false;
 		}
 	}
 }
